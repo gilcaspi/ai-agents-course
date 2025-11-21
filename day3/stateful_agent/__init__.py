@@ -1,1 +1,3 @@
-from .agent import app
+from .agent import apps
+
+__all__ = ["apps"]
