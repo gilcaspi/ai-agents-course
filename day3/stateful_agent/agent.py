@@ -3,8 +3,9 @@ import os
 
 from dotenv import load_dotenv
 from google.adk import Agent
+from google.adk.agents import LlmAgent
 from google.adk.models import Gemini
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import InMemorySessionService, DatabaseSessionService
 from google.adk.runners import Runner
 from google.genai import types
 
@@ -76,16 +77,17 @@ async def run_session(
         print("No queries!")
 
 
-# Step 1: Create the LLM Agent
-root_agent = Agent(
+# Step 1: Create the same agent (notice we use LlmAgent this time)
+root_agent = LlmAgent(
     model=Gemini(model="gemini-2.5-flash-lite", retry_options=retry_config),
     name="text_chat_bot",
-    description="A text chatbot",  # Description of the agent's purpose
+    description="A text chatbot with persistent memory",
 )
 
-# Step 2: Set up Session Management
-# InMemorySessionService stores conversations in RAM (temporary)
-session_service = InMemorySessionService()
+# Step 2: Switch to DatabaseSessionService
+# SQLite database will be created automatically
+db_url = "sqlite:///my_agent_data.db"  # Local SQLite file
+session_service = DatabaseSessionService(db_url=db_url)
 
 # Step 3: Create the Runner
 runner = Runner(agent=root_agent, app_name=APP_NAME, session_service=session_service)
@@ -96,16 +98,25 @@ print(f"   - User: {USER_ID}")
 print(f"   - Using: {session_service.__class__.__name__}")
 
 
-async def debug_run(runner):
+async def teach_and_test(runner):
     await run_session(
         runner,
         [
             "Hi, I am Sam! What is the capital of United States?",
-            "Hello! What is my name?",  # This time, the agent should remember!
+            "Hello! What is my name?",
+        ],
+        "stateful-agentic-session",
+    )
+
+async def only_test(runner):
+    await run_session(
+        runner,
+        [
+            "What is my name?",
         ],
         "stateful-agentic-session",
     )
 
 
 if __name__ == '__main__':
-    asyncio.run(debug_run(runner))
+    asyncio.run(only_test(runner))
