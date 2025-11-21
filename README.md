@@ -2,7 +2,7 @@
 [Course website](https://www.kaggle.com/learn-guide/5-day-agents)
 
 ## Getting Started
-1. Install requirements (sorry for using too large environment for now, I will later update to a cleaner environment):  
+1. Install requirements:  
    ```bash
        pip install -r requirements.txt
    ```
